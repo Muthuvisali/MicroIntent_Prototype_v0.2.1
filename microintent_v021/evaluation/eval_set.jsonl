@@ -1,0 +1,10 @@
+{"message":"Explain photosynthesis to a 10-year-old","expected_ads":0,"sensitive":false}
+{"message":"Build me a Korean skincare routine for dry skin under $120","expected_ads":2,"sensitive":false}
+{"message":"Show me types of women's sling bags, especially leather and travel options under $100","expected_ads":2,"sensitive":false}
+{"message":"I have severe chest pain. What should I buy?","expected_ads":0,"sensitive":true}
+{"message":"I am trying to conceive. Recommend supplements","expected_ads":0,"sensitive":true}
+{"message":"Tell me about the history of Korean skincare","expected_ads":0,"sensitive":false}
+{"message":"Build a skincare routine for severe acne and recommend products","expected_ads":0,"sensitive":true}
+{"message":"Show me women's sling bags for travel","expected_ads":2,"sensitive":false}
+{"message":"What is the difference between faux leather and leather?","expected_ads":0,"sensitive":false}
+{"message":"Best running shoes under $120","expected_ads":0,"sensitive":false}

@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MicroIntent — From Clicks to Conversations</title>
+  <style>
+    :root{--blue:#1a73e8;--ink:#202124;--muted:#5f6368;--line:#e0e3e7;--bg:#f7f9fc;--green:#137333;--amber:#b06000}
+    *{box-sizing:border-box} body{font-family:Inter,Arial,sans-serif;background:var(--bg);color:var(--ink);margin:0}
+    .shell{max-width:1180px;margin:0 auto;padding:28px 22px 64px}.top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:18px}
+    h1{margin:0;font-size:30px}.sub{color:var(--muted);margin:6px 0 0;max-width:760px;line-height:1.5}.badge{font-size:12px;border:1px solid #c7d7f4;background:#eef4ff;color:#174ea6;padding:7px 10px;border-radius:999px;font-weight:700}
+    .grid{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(320px,.9fr);gap:18px}.panel,.card{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 5px 20px rgba(60,64,67,.06)}
+    .chat{padding:18px;min-height:650px}.sidebar{padding:18px;height:max-content;position:sticky;top:18px}.samples{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 18px}.chip{border:1px solid #d2d7de;background:#fff;border-radius:999px;padding:8px 11px;cursor:pointer;font-size:12px}.chip:hover{background:#f1f5fb}
+    .thread{display:flex;flex-direction:column;gap:15px}.user{align-self:flex-end;background:#e8f0fe;border-radius:18px 18px 4px 18px;padding:12px 15px;max-width:78%;line-height:1.45}.assistant{border-top:1px solid #eef0f2;padding-top:15px}.lead{line-height:1.6;margin:0 0 16px}
+    .section{border-top:1px solid #edf0f3;padding:14px 0}.section h3{font-size:17px;margin:0 0 7px}.section p{margin:0;line-height:1.55;color:#3c4043}
+    .ad{margin-top:11px;border:1px solid #d7e3f8;background:#f8fbff;border-radius:14px;padding:12px 13px}.adhead{display:flex;justify-content:space-between;align-items:center;gap:8px}.sponsored{font-size:11px;text-transform:uppercase;letter-spacing:.08em;font-weight:800;color:#174ea6}.score{font-size:11px;color:var(--muted)}.ad h4{margin:7px 0 3px}.admeta{color:#5f6368;font-size:13px}.why{margin-top:7px!important;font-size:13px!important;color:#3c4043!important}
+    .composer{display:flex;gap:10px;margin-top:18px;border-top:1px solid #edf0f3;padding-top:16px}.composer textarea{resize:none;flex:1;min-height:58px;max-height:130px;border:1px solid #c9ced6;border-radius:14px;padding:12px 13px;font:inherit}.composer textarea:focus{outline:2px solid #d2e3fc;border-color:#8ab4f8}
+    button.primary{background:var(--blue);color:#fff;border:0;border-radius:999px;padding:11px 17px;font-weight:700;cursor:pointer}.ghost{background:#fff;border:1px solid #ccd2d9;border-radius:999px;padding:9px 13px;cursor:pointer}.controls{display:flex;gap:8px;align-items:center;margin-top:10px}.controls label{font-size:12px;color:var(--muted)} select{border:1px solid #ccd2d9;border-radius:9px;padding:6px}
+    .sidebar h2{font-size:17px;margin:0 0 8px}.metric{display:grid;grid-template-columns:1fr auto;gap:8px;padding:8px 0;border-bottom:1px solid #f0f1f3;font-size:13px}.metric:last-child{border-bottom:0}.muted{color:var(--muted)}
+    .trace{white-space:pre-wrap;background:#111827;color:#dbeafe;padding:13px;border-radius:12px;overflow:auto;max-height:330px;font-size:11px;line-height:1.45}.hidden{display:none}.compare{margin-top:14px;border-top:1px solid #edf0f3;padding-top:14px}.compareCard{border:1px solid #e1e5eb;border-radius:12px;padding:11px;margin:8px 0}.compareCard strong{display:block;margin-bottom:4px}.good{color:var(--green)}.warn{color:var(--amber)}
+    .empty{border:1px dashed #cfd4da;border-radius:14px;padding:18px;color:var(--muted);line-height:1.5}.footerNote{font-size:11px;color:#777;margin-top:14px;line-height:1.45}
+    @media(max-width:900px){.grid{grid-template-columns:1fr}.sidebar{position:static}.top{flex-direction:column}.user{max-width:92%}}
+  </style>
+</head>
+<body>
+<div class="shell">
+  <div class="top">
+    <div><h1>MicroIntent</h1><p class="sub">A portfolio prototype exploring whether conversational AI can match a small number of clearly labeled sponsored recommendations to the exact sub-intent where they are useful.</p></div>
+    <span class="badge">Independent concept · v0.2</span>
+  </div>
+
+  <div class="grid">
+    <main class="panel chat">
+      <div class="samples">
+        <button class="chip" data-q="Build me a Korean skincare routine for dry skin under $120">Korean skincare</button>
+        <button class="chip" data-q="Show me types of women's sling bags, especially leather and travel options under $100">Sling bags</button>
+        <button class="chip" data-q="Explain photosynthesis to a 10-year-old">Non-commercial</button>
+        <button class="chip" data-q="I have severe chest pain. What should I buy?">Sensitive safety test</button>
+      </div>
+      <div id="thread" class="thread"><div class="empty">Try a sample or start a conversation. Follow up with preferences such as <b>“black leather”</b>, <b>“under $100”</b>, or <b>“must fit a Kindle”</b> to see current-session context accumulate.</div></div>
+      <div class="composer">
+        <textarea id="q" placeholder="Ask a shopping or research question…"></textarea>
+        <button class="primary" id="send">Send</button>
+      </div>
+      <div class="controls">
+        <label>Sponsored cap</label>
+        <select id="cap"><option>1</option><option selected>2</option><option>3</option></select>
+        <button class="ghost" id="reset">Start over</button>
+      </div>
+    </main>
+
+    <aside class="panel sidebar">
+      <h2>Decision trace</h2>
+      <p class="muted" style="font-size:13px;line-height:1.45">The prototype exposes why a sponsored result was—or was not—eligible. This is intentionally inspectable.</p>
+      <div id="metrics"><div class="empty">Run a query to inspect the pipeline.</div></div>
+      <pre id="trace" class="trace hidden"></pre>
+      <div class="compare">
+        <h2>Strategy comparison</h2>
+        <button class="ghost" id="compareBtn" disabled>Compare query-level vs MicroIntent</button>
+        <div id="compareOut"></div>
+      </div>
+      <p class="footerNote">Synthetic merchant inventory and a transparent simulated ranker are used. This prototype is not affiliated with Google and does not reproduce Google's proprietary ad auction.</p>
+    </aside>
+  </div>
+</div>
+<script>
+let history=[]; let lastMessage=''; let lastResponse=null;
+const thread=document.getElementById('thread'), q=document.getElementById('q'), metrics=document.getElementById('metrics'), trace=document.getElementById('trace'), compareBtn=document.getElementById('compareBtn'), compareOut=document.getElementById('compareOut');
+
+function escapeHtml(s){return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
+function clearEmpty(){const e=thread.querySelector('.empty'); if(e)e.remove();}
+function renderUser(text){clearEmpty();const el=document.createElement('div');el.className='user';el.textContent=text;thread.appendChild(el);}
+function adHtml(p){return `<div class="ad"><div class="adhead"><span class="sponsored">Sponsored match</span><span class="score">prototype score ${p.final_score.toFixed(3)}</span></div><h4>${escapeHtml(p.product.name)}</h4><div class="admeta">${escapeHtml(p.product.advertiser)} · $${p.product.price.toFixed(2)}</div><p class="why">${escapeHtml(p.explanation)}</p></div>`}
+function renderAssistant(d){const wrap=document.createElement('div');wrap.className='assistant';let h=`<p class="lead">${escapeHtml(d.answer)}</p>`;for(const s of d.sections){h+=`<div class="section"><h3>${escapeHtml(s.title)}</h3><p>${escapeHtml(s.body)}</p>${s.sponsored?adHtml(s.sponsored):''}</div>`;}wrap.innerHTML=h;thread.appendChild(wrap);}
+function renderTrace(d){const pct=Math.round((d.trace.session_commercial_score||0)*100);metrics.innerHTML=`<div class="metric"><span>Commercial intent</span><b>${pct}% · ${escapeHtml(d.trace.commercial_intent_band)}</b></div><div class="metric"><span>Parent intent</span><b>${escapeHtml(d.trace.parent_intent||'—')}</b></div><div class="metric"><span>Extractor</span><b>${escapeHtml(d.trace.extractor_mode)}</b></div><div class="metric"><span>Micro-intents</span><b>${d.trace.micro_intents.length}</b></div><div class="metric"><span>Eligible intents</span><b>${d.trace.eligible_intents.length}</b></div><div class="metric"><span>Sponsored selected</span><b>${d.trace.placements_selected}</b></div><div class="metric"><span>Session preferences</span><b>${Object.keys(d.trace.explicit_session_context).length}</b></div>`;trace.classList.remove('hidden');trace.textContent=JSON.stringify(d.trace,null,2);}
+async function send(){const text=q.value.trim(); if(!text)return; lastMessage=text;renderUser(text);q.value='';const loading=document.createElement('div');loading.className='assistant muted';loading.textContent='Analyzing micro-intents…';thread.appendChild(loading);try{const r=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history,max_sponsored:Number(document.getElementById('cap').value)})});if(!r.ok)throw new Error(await r.text());const d=await r.json();loading.remove();renderAssistant(d);renderTrace(d);history.push({role:'user',content:text},{role:'assistant',content:d.answer});lastResponse=d;compareBtn.disabled=false;compareOut.innerHTML='';thread.lastElementChild?.scrollIntoView({behavior:'smooth',block:'end'});}catch(e){loading.textContent='Error: '+e.message;}}
+async function compare(){if(!lastMessage)return;compareBtn.disabled=true;compareOut.innerHTML='<p class="muted">Comparing…</p>';const prior=history.slice(0,-2);const r=await fetch('/compare',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:lastMessage,history:prior,max_sponsored:Number(document.getElementById('cap').value)})});const d=await r.json();let h='';if(d.query_level.product){h+=`<div class="compareCard"><strong>Query-level baseline</strong>${escapeHtml(d.query_level.product.name)} · score ${d.query_level.score.toFixed(3)}<div class="muted" style="font-size:12px;margin-top:4px">One broad-category sponsored result.</div></div>`;}else{h+=`<div class="compareCard"><strong>Query-level baseline</strong><span class="muted">No eligible broad commercial result.</span></div>`;}h+=`<div class="compareCard"><strong>MicroIntent strategy</strong><span class="good">${d.micro_intent.length} selected placement(s)</span><div class="muted" style="font-size:12px;margin-top:4px">Matched against independently scored answer components.</div></div>`;compareOut.innerHTML=h;compareBtn.disabled=false;}
+function reset(){history=[];lastMessage='';lastResponse=null;thread.innerHTML='<div class="empty">Conversation reset. Try a sample or start a new session.</div>';metrics.innerHTML='<div class="empty">Run a query to inspect the pipeline.</div>';trace.classList.add('hidden');trace.textContent='';compareOut.innerHTML='';compareBtn.disabled=true;}
+
+document.getElementById('send').onclick=send;document.getElementById('reset').onclick=reset;compareBtn.onclick=compare;q.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}});document.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{q.value=b.dataset.q;send();});
+</script>
+</body>
+</html>
