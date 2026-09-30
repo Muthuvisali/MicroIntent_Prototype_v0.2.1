@@ -11,7 +11,7 @@ from app.models import ChatRequest, ChatResponse, StrategyComparison
 from app.services.baseline import query_level_baseline
 from app.services.pipeline import run_pipeline
 
-app = FastAPI(title="MicroIntent Prototype", version="0.2.0")
+app = FastAPI(title="MicroIntent Prototype", version="0.3.0")
 STATIC = Path(__file__).resolve().parents[1] / "static"
 app.mount("/static", StaticFiles(directory=STATIC), name="static")
 
@@ -23,7 +23,7 @@ def index():
 
 @app.get("/health")
 def health():
-    return {"ok": True, "version": "0.2.0"}
+    return {"ok": True, "version": "0.3.0"}
 
 
 @app.post("/chat", response_model=ChatResponse)

@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import Dict, List
-from app.models import AnswerSection, MicroIntent, SponsoredPlacement
+from app.models import AnswerSection, MicroIntent, OrganicOption, SponsoredPlacement
 
 SECTION_COPY: Dict[str, tuple[str, str]] = {
     "oil cleanser": (
@@ -51,6 +51,30 @@ SECTION_COPY: Dict[str, tuple[str, str]] = {
         "Sport / lightweight",
         "For active use, prioritize low weight, breathable contact surfaces, secure fit, and materials that are easy to clean.",
     ),
+    "flight": (
+        "Flights",
+        "Compare total trip time and baggage rules, not just the headline fare. Arriving at Haneda is usually more convenient for central Tokyo than Narita.",
+    ),
+    "hotel": (
+        "Where to stay",
+        "Pick a base near a major rail line. Business hotels are compact but efficient; a ryokan night adds a traditional experience at a higher price.",
+    ),
+    "rail pass": (
+        "Getting around",
+        "Price your actual route before buying a rail pass. For a Tokyo–Kyoto–Osaka loop, individual shinkansen tickets can cost less than a nationwide pass.",
+    ),
+    "activities": (
+        "Things to do",
+        "Book timed-entry sights such as teamLab or popular temples in advance; leave unstructured time for neighborhoods, markets, and day trips.",
+    ),
+    "mobile data": (
+        "Staying connected",
+        "An eSIM is the simplest option for most phones. Check that your phone is unlocked and supports eSIM before you leave.",
+    ),
+    "dining": (
+        "Food",
+        "Mix reservations at a few sought-after restaurants with walk-in options like ramen counters, izakayas, and department-store food halls.",
+    ),
 }
 
 
@@ -66,6 +90,11 @@ def base_answer(message: str) -> str:
             "A useful way to compare sling bags is by the job they need to do: design-led, leather, faux leather, travel/security, or sport/lightweight. "
             "Capacity, comfort, closure, materials, return policy, and price are usually more decision-relevant than category labels alone."
         )
+    if "japan" in t:
+        return (
+            "A Japan trip breaks down into a few separate decisions: getting there, where to stay, how to move between cities, "
+            "what to book ahead, staying connected, and food. Each is worth deciding on its own terms."
+        )
     return (
         "Here is a direct answer to your question. This prototype focuses on deciding whether a commercial recommendation is appropriate; "
         "it does not attempt to reproduce a production search engine."
@@ -76,7 +105,9 @@ def compose_sections(
     message: str,
     intents: List[MicroIntent],
     placements: List[SponsoredPlacement],
+    organic: Dict[str, List[OrganicOption]] | None = None,
 ) -> List[AnswerSection]:
+    organic = organic or {}
     placement_by_id = {p.micro_intent_id: p for p in placements}
     sections: List[AnswerSection] = []
     for intent in intents:
@@ -91,6 +122,7 @@ def compose_sections(
                 micro_intent_id=intent.id,
                 title=title,
                 body=body,
+                organic=organic.get(intent.id, []),
                 sponsored=placement_by_id.get(intent.id),
             )
         )

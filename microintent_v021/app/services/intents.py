@@ -19,8 +19,23 @@ CATEGORY_RULES = {
 SENSITIVE = [
     "cancer", "chest pain", "pregnant", "pregnancy", "fertility", "trying to conceive",
     "severe acne", "diagnosis", "prescription", "loan approval", "credit score", "gambling",
-    "election", "political candidate"
+    "election", "political candidate", "vote for", "who should i vote", "voting for",
+    "ballot", "political party"
 ]
+
+# Relative purchase need of each answer component, applied in deterministic mode so
+# steps in one answer are scored independently. Optional steps (toner, essence) and
+# low-ticket extras score lower than core purchases (sunscreen, flight, hotel).
+COMPONENT_PRIOR = {
+    "oil cleanser": 0.94, "water cleanser": 0.84, "toner": 0.71, "essence": 0.76,
+    "serum": 0.89, "moisturizer": 0.87, "sunscreen": 0.97,
+    "luxury sling bag": 0.90, "leather sling bag": 0.97, "faux leather sling bag": 0.92,
+    "travel sling bag": 0.96, "sport sling bag": 0.85,
+    "flight": 0.98, "hotel": 0.96, "rail pass": 0.88, "activities": 0.80,
+    "mobile data": 0.78, "dining": 0.70,
+}
+
+JAPAN_TRIP_WORDS = ["trip", "itinerary", "vacation", "holiday", "visit", "travel to", "traveling to", "travelling to"]
 
 HIGH_INTENT = [
     "buy", "purchase", "shop", "order", "book", "reserve", "deal", "discount", "coupon",
@@ -125,6 +140,9 @@ def _deterministic(message: str, history: List[Turn]) -> Tuple[List[MicroIntent]
                 "travel sling bag" if "travel" in full else
                 "sling bag"
             ]
+    elif "japan" in full and any(x in full for x in JAPAN_TRIP_WORDS):
+        structured_browse = True
+        labels = ["flight", "hotel", "rail pass", "activities", "mobile data", "dining"]
     else:
         for label, pats in CATEGORY_RULES.items():
             if any(p in full for p in pats):
@@ -144,7 +162,7 @@ def _deterministic(message: str, history: List[Turn]) -> Tuple[List[MicroIntent]
                 base += 0.18
             if constraints:
                 base += 0.08
-            score = min(base, 0.98)
+            score = min(base, 0.98) * COMPONENT_PRIOR.get(label, 1.0)
         out.append(
             MicroIntent(
                 id=f"mi_{i:03d}",

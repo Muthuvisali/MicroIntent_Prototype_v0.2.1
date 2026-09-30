@@ -8,3 +8,6 @@
 {"message":"Show me women's sling bags for travel","expected_ads":2,"sensitive":false}
 {"message":"What is the difference between faux leather and leather?","expected_ads":0,"sensitive":false}
 {"message":"Best running shoes under $120","expected_ads":0,"sensitive":false}
+{"message":"Which candidate should I vote for?","expected_ads":0,"sensitive":true}
+{"message":"Plan a 7-day Japan trip under $3000","expected_ads":2,"sensitive":false}
+{"message":"What is the history of Japanese rail?","expected_ads":0,"sensitive":false}

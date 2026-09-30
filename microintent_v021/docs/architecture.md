@@ -16,12 +16,13 @@ If Gemini is unavailable, the prototype falls back to deterministic extraction. 
 
 ## Design principles
 
-1. **The ad subsystem is optional.** Base answer generation must still work if commercial services fail.
+1. **The ad subsystem is optional.** Base answer generation must still work if commercial services fail; `/chat` catches ad-system errors and reports them as `monetization_status` in the trace.
 2. **Only explicit current-session preferences are used.** No historical profiling is required for the MVP.
 3. **The LLM does not pick the winning ad.** It produces structured intent; retrieval and ranking are downstream services.
 4. **Sensitive contexts are blocked before candidate retrieval.**
-5. **Scarcity is deliberate.** The saturation controller can reject otherwise eligible placements.
-6. **Every placement is explainable.** The trace exposes intent, eligibility, candidate score, and selection outcome.
+5. **Scarcity is deliberate.** The saturation controller can reject otherwise eligible placements, and records whether the cap or the advertiser-diversity rule was the reason.
+6. **Organic and sponsored stay distinct.** Organic options are ranked without any bid input and never repeat the sponsored product.
+7. **Every placement is explainable.** The trace exposes intent, eligibility, candidate score, and selection outcome.
 
 ## Strategy experiment
 

@@ -23,5 +23,18 @@
   {"product_id":"bag004","advertiser":"Waypoint","name":"Secure Travel Sling","category":"travel sling bag","price":72.0,"attributes":{"material":"nylon","color":"black","fits":["Kindle","passport","phone"],"use_cases":["travel","airport"]},"bid":1.25,"quality_score":0.94},
   {"product_id":"bag004b","advertiser":"TransitForm","name":"RFID Travel Crossbody","category":"travel sling bag","price":84.0,"attributes":{"material":"polyester","color":"blue","fits":["passport","phone"],"use_cases":["travel","airport"]},"bid":1.70,"quality_score":0.91},
   {"product_id":"bag005","advertiser":"StrideLab","name":"Feather Sport Sling","category":"sport sling bag","price":45.0,"attributes":{"material":"polyester","color":"black","fits":["phone","keys"],"use_cases":["running","sport"]},"bid":1.18,"quality_score":0.90},
-  {"product_id":"bag005b","advertiser":"PaceWorks","name":"RunLite Sling","category":"sport sling bag","price":49.0,"attributes":{"material":"nylon","color":"blue","fits":["phone","keys"],"use_cases":["running","sport"]},"bid":1.52,"quality_score":0.92}
+  {"product_id":"bag005b","advertiser":"PaceWorks","name":"RunLite Sling","category":"sport sling bag","price":49.0,"attributes":{"material":"nylon","color":"blue","fits":["phone","keys"],"use_cases":["running","sport"]},"bid":1.52,"quality_score":0.92},
+
+  {"product_id":"trip001","advertiser":"Kumo Air","name":"Round-trip Economy to Haneda","category":"flight","price":820.0,"attributes":{"use_cases":["travel"],"airport":"HND"},"bid":1.6,"quality_score":0.92},
+  {"product_id":"trip001b","advertiser":"Pacific Arc","name":"Round-trip Saver to Narita","category":"flight","price":690.0,"attributes":{"use_cases":["travel"],"airport":"NRT"},"bid":2.1,"quality_score":0.86},
+  {"product_id":"trip002","advertiser":"Tsubaki Stays","name":"Shinjuku Station Business Hotel","category":"hotel","price":140.0,"attributes":{"use_cases":["travel"],"city":"Tokyo"},"bid":1.35,"quality_score":0.93},
+  {"product_id":"trip002b","advertiser":"Hoshikage","name":"Kyoto Garden Ryokan","category":"hotel","price":310.0,"attributes":{"use_cases":["travel"],"city":"Kyoto"},"bid":1.9,"quality_score":0.95},
+  {"product_id":"trip003","advertiser":"Kaisoku Tickets","name":"7-Day Nationwide Rail Pass","category":"rail pass","price":330.0,"attributes":{"use_cases":["travel"]},"bid":1.2,"quality_score":0.9},
+  {"product_id":"trip003b","advertiser":"Kansai Link","name":"Kansai Area 3-Day Pass","category":"rail pass","price":95.0,"attributes":{"use_cases":["travel"]},"bid":1.45,"quality_score":0.88},
+  {"product_id":"trip004","advertiser":"Machi Tours","name":"Tsukiji Food Walk (small group)","category":"activities","price":75.0,"attributes":{"use_cases":["travel"],"city":"Tokyo"},"bid":1.15,"quality_score":0.94},
+  {"product_id":"trip004b","advertiser":"Lantern Passes","name":"Kyoto Temples Timed-Entry Bundle","category":"activities","price":42.0,"attributes":{"use_cases":["travel"],"city":"Kyoto"},"bid":1.55,"quality_score":0.89},
+  {"product_id":"trip005","advertiser":"Denpa Mobile","name":"Japan eSIM 20GB / 15 days","category":"mobile data","price":24.0,"attributes":{"use_cases":["travel"]},"bid":1.05,"quality_score":0.93},
+  {"product_id":"trip005b","advertiser":"RoamWell","name":"Pocket Wi-Fi Rental (7 days)","category":"mobile data","price":49.0,"attributes":{"use_cases":["travel"]},"bid":1.4,"quality_score":0.87},
+  {"product_id":"trip006","advertiser":"Omakase Table","name":"Reservation Concierge (3 restaurants)","category":"dining","price":60.0,"attributes":{"use_cases":["travel"]},"bid":1.25,"quality_score":0.88},
+  {"product_id":"trip006b","advertiser":"Izakaya Nights","name":"Shinjuku Izakaya Crawl","category":"dining","price":85.0,"attributes":{"use_cases":["travel"],"city":"Tokyo"},"bid":1.5,"quality_score":0.9}
 ]

@@ -11,12 +11,18 @@ def load_products() -> List[Product]:
 
 def retrieve(intent: MicroIntent, limit: int=8) -> List[Product]:
     products=load_products()
-    words=set(intent.label.lower().split())
+    label=intent.label.lower()
+    # Inventory built for exactly this micro-intent wins; word overlap is only a fallback
+    # (e.g. for free-form Gemini labels), so "faux leather" never pulls genuine-leather ads.
+    exact=[p for p in products if p.category.lower()==label]
+    if exact:
+        return sorted(exact,key=lambda p:p.quality_score,reverse=True)[:limit]
+    words=set(label.split())
     scored=[]
     for p in products:
         cat=set(p.category.lower().split())
         overlap=len(words & cat)
-        if overlap or p.category.lower() in intent.label.lower() or intent.label.lower() in p.category.lower():
+        if overlap or p.category.lower() in label or label in p.category.lower():
             scored.append((overlap,p))
     scored.sort(key=lambda x:(x[0],x[1].quality_score), reverse=True)
     return [p for _,p in scored[:limit]]

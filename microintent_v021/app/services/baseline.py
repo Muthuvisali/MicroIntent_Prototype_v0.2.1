@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import List
 from app.models import BaselinePlacement, ChatRequest, Product
-from app.services.intents import extract_explicit_context
+from app.services.intents import JAPAN_TRIP_WORDS, extract_explicit_context
 from app.services.retrieval import load_products
 
 
@@ -33,6 +33,8 @@ def query_level_baseline(req: ChatRequest) -> BaselinePlacement:
         family: List[Product] = [p for p in products if p.product_id.startswith("skin")]
     elif "sling bag" in full or "sling bags" in full:
         family = [p for p in products if p.product_id.startswith("bag")]
+    elif "japan" in full and any(x in full for x in JAPAN_TRIP_WORDS):
+        family = [p for p in products if p.product_id.startswith("trip")]
     else:
         return BaselinePlacement(
             explanation="The query-level baseline found no broad commercial category for this request."

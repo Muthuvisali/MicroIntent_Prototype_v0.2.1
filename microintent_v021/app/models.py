@@ -50,10 +50,21 @@ class SponsoredPlacement(BaseModel):
     explanation: str
 
 
+class OrganicOption(BaseModel):
+    """Non-sponsored option ranked without any bid input."""
+    product_id: str
+    name: str
+    merchant: str
+    price: float
+    organic_score: float
+    reason: str
+
+
 class AnswerSection(BaseModel):
     micro_intent_id: Optional[str] = None
     title: str
     body: str
+    organic: List[OrganicOption] = Field(default_factory=list)
     sponsored: Optional[SponsoredPlacement] = None
 
 
@@ -66,11 +77,14 @@ class IntentDecision(BaseModel):
         "no_candidates",
         "below_threshold",
         "eligible_not_selected",
+        "not_selected_saturation",
+        "not_selected_diversity",
         "selected",
     ]
     commercial_score: float
     top_candidate_score: Optional[float] = None
     top_candidate_name: Optional[str] = None
+    placement_priority: Optional[float] = None
 
 
 class DecisionTrace(BaseModel):
@@ -85,6 +99,7 @@ class DecisionTrace(BaseModel):
     eligible_intents: List[str]
     placements_considered: int
     placements_selected: int
+    monetization_status: str = "ok"
 
 
 class ChatResponse(BaseModel):

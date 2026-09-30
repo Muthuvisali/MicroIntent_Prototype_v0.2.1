@@ -31,3 +31,14 @@ def rank(intent: MicroIntent, products: List[Product]) -> List[RankedCandidate]:
         score=.40*rel + .20*fit + .15*p.quality_score + .15*bid + .10*utility
         out.append(RankedCandidate(product=p,relevance=round(rel,3),constraint_fit=round(fit,3),user_utility=round(utility,3),normalized_bid=round(bid,3),final_score=round(score,3)))
     return sorted(out,key=lambda x:x.final_score,reverse=True)
+
+
+def rank_organic(intent: MicroIntent, products: List[Product]) -> List[RankedCandidate]:
+    """Organic ordering: relevance, constraint fit and quality only. Bid is never an input."""
+    out = []
+    for p in products:
+        rel, fit = _match(intent, p)
+        utility = (rel + fit) / 2
+        score = .50 * rel + .30 * fit + .20 * p.quality_score
+        out.append(RankedCandidate(product=p, relevance=round(rel, 3), constraint_fit=round(fit, 3), user_utility=round(utility, 3), normalized_bid=0.0, final_score=round(score, 3)))
+    return sorted(out, key=lambda x: x.final_score, reverse=True)
