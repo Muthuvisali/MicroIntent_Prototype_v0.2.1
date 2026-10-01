@@ -20,6 +20,7 @@ class MicroIntent(BaseModel):
     commercial_score: float = Field(ge=0.0, le=1.0)
     constraints: Dict[str, object] = Field(default_factory=dict)
     sensitive_domain: bool = False
+    guidance: str = ""
 
 
 class Product(BaseModel):
@@ -126,6 +127,7 @@ class StrategyComparison(BaseModel):
 # cannot invent arbitrary profile fields.
 class LLMIntentItem(BaseModel):
     label: str
+    guidance: str = ""
     commercial_score: float = Field(ge=0.0, le=1.0)
     sensitive_domain: bool = False
     max_price: Optional[float] = None

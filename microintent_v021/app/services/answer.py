@@ -1,4 +1,5 @@
 from __future__ import annotations
+import re
 from typing import Dict, List
 from app.models import AnswerSection, MicroIntent, OrganicOption, SponsoredPlacement
 
@@ -78,12 +79,21 @@ SECTION_COPY: Dict[str, tuple[str, str]] = {
 }
 
 
-def base_answer(message: str) -> str:
+def base_answer(message: str, session_text: str = "") -> str:
     t = message.lower()
+    informational = any(x in t for x in ["history of", "what is", "explain", "why do", "why does", "difference between"])
+    if informational:
+        return (
+            "Here is a direct answer to your question. This prototype focuses on deciding whether a commercial recommendation is appropriate; "
+            "for an informational question like this one, it shows no sponsored content."
+        )
     if "skincare" in t:
+        # Only mention a skin type the user actually stated in this session.
+        stated = re.search(r"\b(dry|oily|combination|sensitive|normal) skin\b", (session_text or message).lower())
+        who = f"For {stated.group(1)} skin, keep" if stated else "Keep"
         return (
             "A useful Korean-style routine should be organized around function, not around forcing every possible step. "
-            "For dry skin, keep cleansing gentle, add hydration where it helps, protect the barrier, and finish with sunscreen."
+            f"{who} cleansing gentle, add hydration where it helps, protect the barrier, and finish with sunscreen."
         )
     if "sling bag" in t:
         return (
@@ -115,7 +125,11 @@ def compose_sections(
             continue
         title, body = SECTION_COPY.get(
             intent.label,
-            (intent.label.title(), f"Consider this need separately when evaluating your options: {intent.label}."),
+            (
+                intent.label.title(),
+                intent.guidance
+                or f"This prototype has no written guidance or catalog inventory for {intent.label} yet.",
+            ),
         )
         sections.append(
             AnswerSection(

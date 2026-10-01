@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import List
 from app.models import BaselinePlacement, ChatRequest, Product
-from app.services.intents import JAPAN_TRIP_WORDS, extract_explicit_context
+from app.services.intents import JAPAN_TRIP_WORDS, extract_explicit_context, session_text
 from app.services.retrieval import load_products
 
 
@@ -25,7 +25,7 @@ def _constraint_fit(product: Product, constraints: dict) -> float:
 
 
 def query_level_baseline(req: ChatRequest) -> BaselinePlacement:
-    full = " ".join([t.content for t in req.history if t.role == "user"] + [req.message]).lower()
+    full = session_text(req.message, req.history).lower()
     constraints = extract_explicit_context(full)
     products = load_products()
 

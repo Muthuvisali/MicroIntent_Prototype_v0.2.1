@@ -12,7 +12,7 @@ from app.models import (
 )
 from app.services.answer import base_answer, compose_sections
 from app.services.explanation import explain, explain_organic
-from app.services.intents import extract_explicit_context, extract_micro_intents
+from app.services.intents import extract_explicit_context, extract_micro_intents, session_text
 from app.services.ranking import rank, rank_organic
 from app.services.retrieval import retrieve
 from app.services.safety import is_commercially_eligible
@@ -105,12 +105,10 @@ def _monetize(req: ChatRequest, intents: List[MicroIntent]):
 
 
 def run_pipeline(req: ChatRequest) -> ChatResponse:
-    answer = base_answer(req.message)
+    user_session_text = session_text(req.message, req.history)
+    answer = base_answer(req.message, user_session_text)
     intents, extractor_mode, parent_intent = extract_micro_intents(req.message, req.history)
 
-    user_session_text = " ".join(
-        [t.content for t in req.history if t.role == "user"] + [req.message]
-    )
     explicit_context = extract_explicit_context(user_session_text)
 
     # Graceful failure: if the ad system or organic retrieval breaks, the answer still ships.

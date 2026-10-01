@@ -47,3 +47,13 @@
 - Explanations now read "Why this matches: …" and remain limited to user-stated constraints and catalog facts.
 - UI: organic-options block per section and a per-component decision table in the sidebar.
 - Tests: 15 automated tests (was 10); evaluation 13/13.
+
+## v0.3.1 — Gemini mode fixes
+- Gemini is given the catalog's component labels and told to decompose routines, plans and category browses into one item per component; free-form labels ("cleansing oil", "JR Pass") are mapped onto catalog categories, and duplicates are merged.
+- Gemini returns a short guidance line per component, used as section text where no curated copy exists (replaces the "Consider this need separately…" placeholder).
+- Gemini is told to score components independently rather than giving every step the same score.
+- One automatic retry on a transient 503 before falling back to deterministic extraction.
+- The answer no longer assumes "dry skin" unless the user said so; informational questions ("history of…") no longer get routine text.
+- Topic scoping: the current message decides the topic. Earlier turns are used only for follow-ups ("under $40", "it also has to fit a Kindle"), so "what is photosynthesis" after a skincare conversation is no longer treated as skincare, and preferences from an old topic no longer carry into a new one. Safety still checks the whole conversation.
+- Gemini is told to analyze the latest message and ignore earlier topics after a topic change.
+- 23 automated tests (was 15).

@@ -1,5 +1,6 @@
 from __future__ import annotations
 import os
+import time
 import re
 from typing import Dict, List, Tuple
 from app.models import LLMIntentExtraction, MicroIntent, Turn
@@ -34,6 +35,44 @@ COMPONENT_PRIOR = {
     "flight": 0.98, "hotel": 0.96, "rail pass": 0.88, "activities": 0.80,
     "mobile data": 0.78, "dining": 0.70,
 }
+
+# Free-form LLM labels are mapped onto catalog categories so retrieval can find inventory.
+# Longest phrases are checked first, so "faux leather sling" wins over "leather sling".
+LABEL_SYNONYMS = {
+    "oil cleanser": ["oil cleanser", "cleansing oil", "cleansing balm", "first cleanse", "oil cleanse"],
+    "water cleanser": ["water cleanser", "water-based cleanser", "foam cleanser", "gel cleanser", "second cleanse", "water cleanse"],
+    "toner": ["toner"],
+    "essence": ["essence"],
+    "serum": ["serum", "ampoule"],
+    "moisturizer": ["moisturizer", "moisturiser", "face cream", "night cream"],
+    "sunscreen": ["sunscreen", "spf", "sun protection"],
+    "faux leather sling bag": ["faux leather sling", "vegan leather sling", "vegan sling"],
+    "luxury sling bag": ["luxury sling", "designer sling"],
+    "leather sling bag": ["leather sling"],
+    "travel sling bag": ["travel sling", "anti-theft sling"],
+    "sport sling bag": ["sport sling", "running sling", "athletic sling"],
+    "flight": ["flight", "airfare", "plane ticket"],
+    "hotel": ["hotel", "accommodation", "lodging", "ryokan"],
+    "rail pass": ["rail pass", "jr pass", "train pass", "shinkansen"],
+    "activities": ["activities", "tours", "sightseeing", "attractions"],
+    "mobile data": ["mobile data", "esim", "sim card", "pocket wifi", "pocket wi-fi", "connectivity"],
+    "dining": ["dining", "restaurant", "food tour"],
+}
+_SYNONYM_ORDER = sorted(
+    ((phrase, label) for label, phrases in LABEL_SYNONYMS.items() for phrase in phrases),
+    key=lambda x: len(x[0]), reverse=True,
+)
+
+
+def canonical_label(label: str) -> str:
+    t = label.strip().lower()
+    if t in COMPONENT_PRIOR:
+        return t
+    for phrase, known in _SYNONYM_ORDER:
+        if phrase in t:
+            return known
+    return t
+
 
 JAPAN_TRIP_WORDS = ["trip", "itinerary", "vacation", "holiday", "visit", "travel to", "traveling to", "travelling to"]
 
@@ -114,10 +153,65 @@ def _fallback_label(message: str, score: float) -> str:
     return "general information"
 
 
+FOLLOW_UP_CUES = [" it ", " it's ", " also ", " that one ", " those ", " cheaper ", " instead ", " what about "]
+
+
+def _topic(text: str):
+    t = text.lower()
+    if "skincare" in t or "skin care" in t:
+        return "skincare"
+    if "sling bag" in t:
+        return "sling bags"
+    if "japan" in t and any(x in t for x in JAPAN_TRIP_WORDS):
+        return "japan trip"
+    for label, pats in CATEGORY_RULES.items():
+        if any(p in t for p in pats):
+            return label
+    return None
+
+
+def _is_follow_up(message: str) -> bool:
+    t = f" {message.lower().strip()} "
+    if any(x in t for x in NONCOMMERCIAL_PATTERNS):
+        return False
+    return bool(extract_explicit_context(message)) or any(c in t for c in FOLLOW_UP_CUES)
+
+
+def session_text(message: str, history: List[Turn]) -> str:
+    """User text for the *current topic* only.
+
+    The current message sets the topic. A message without a topic of its own inherits the
+    most recent topic only when it reads as a follow-up ("black leather under $100",
+    "it also has to fit a Kindle"); otherwise it stands alone, so "what is photosynthesis"
+    after a skincare conversation is not treated as skincare.
+    """
+    turns = [x.content for x in history if x.role == "user"] + [message]
+    topics = [_topic(x) for x in turns]
+    anchor = len(turns) - 1
+    if topics[anchor] is None:
+        if not _is_follow_up(message):
+            return message
+        earlier = [i for i in range(anchor) if topics[i] is not None]
+        if not earlier:
+            return message
+        anchor = earlier[-1]
+    topic = topics[anchor]
+    start = anchor
+    for j in range(anchor - 1, -1, -1):
+        if topics[j] == topic or (topics[j] is None and _is_follow_up(turns[j])):
+            start = j
+        else:
+            break
+    return " ".join(turns[start:anchor] + turns[anchor:])
+
+
 def _deterministic(message: str, history: List[Turn]) -> Tuple[List[MicroIntent], str]:
-    full = " ".join([x.content for x in history if x.role == "user"] + [message]).lower()
+    full = session_text(message, history).lower()
     constraints = extract_explicit_context(full)
-    sensitive = any(x in full for x in SENSITIVE)
+    # Safety looks at the whole conversation on purpose: a sensitive context stated earlier
+    # still blocks monetization of a vague follow-up like "what should I buy?".
+    whole_session = " ".join([x.content for x in history if x.role == "user"] + [message]).lower()
+    sensitive = any(x in whole_session for x in SENSITIVE)
     labels: List[str] = []
     structured_browse = False
 
@@ -193,29 +287,51 @@ def _gemini(message: str, history: List[Turn]) -> Tuple[List[MicroIntent], str]:
     prompt = (
         "Analyze this conversational search session for a sponsored-recommendation prototype. "
         "You MUST return a commercial-intent assessment for every search, including clearly "
-        "non-commercial searches. Identify 1-6 semantically distinct needs. A commercial_score "
+        "non-commercial searches. Identify 1-10 semantically distinct needs. A commercial_score "
         "of 0 means no purchase/service-selection intent; 1 means explicit near-term transaction intent. "
         "Do not inflate informational research merely because a product could theoretically exist. "
         "Use only preferences explicitly stated in this session; do not infer demographic, health, "
         "financial, political, or historical-user attributes. Mark an item sensitive when monetizing "
         "that intent would be inappropriate or restricted. Prefer meaningful micro-intents over redundant variants.\n\n"
+        "DECOMPOSITION RULES:\n"
+        "- For a routine, plan, or category browse, return one item per component "
+        "(e.g. each routine step, each part of a trip, each bag category), not one item for the whole request.\n"
+        "- When a component matches one of these known labels, use the label exactly: "
+        + ", ".join(COMPONENT_PRIOR) + ".\n"
+        "- Otherwise use a short product or service noun phrase (e.g. 'eye cream', 'sheet mask'). "
+        "Never use words like guide, tips, routine, products, sets or essentials in a label.\n"
+        "- guidance: one or two neutral sentences on what to look for in that component. "
+        "No brand names, and no preferences the user did not state.\n"
+        "- Analyze the LATEST user message. Use earlier turns only when the latest message is a "
+        "follow-up to them (e.g. adds a budget or color). If it changes topic, ignore earlier topics.\n\n"
         "SCORING GUIDE:\n"
         "0.00-0.19 = informational/non-commercial\n"
         "0.20-0.44 = weak/latent commercial possibility\n"
         "0.45-0.69 = active consideration/comparison\n"
         "0.70-0.89 = strong shopping/booking intent\n"
         "0.90-1.00 = explicit transaction/near-purchase intent\n\n"
+        "SCORING RULES:\n"
+        "- Score each component independently. Components rarely share one score: staples the user "
+        "must acquire to follow the plan (e.g. sunscreen, a flight) score higher than optional extras "
+        "(e.g. a sheet mask, a food tour).\n"
+        "- Asking to build a routine or plan means the user will need its components, so core "
+        "components are at least active consideration. Purely informational requests (history, "
+        "explanations, comparisons of concepts) stay low.\n\n"
         "SESSION:\n" + session_text
     )
-    response = client.models.generate_content(
-        model=model,
-        contents=prompt,
-        config=types.GenerateContentConfig(
-            response_mime_type="application/json",
-            response_schema=LLMIntentExtraction,
-            temperature=0.0,
-        ),
+    config = types.GenerateContentConfig(
+        response_mime_type="application/json",
+        response_schema=LLMIntentExtraction,
+        temperature=0.0,
     )
+    try:
+        response = client.models.generate_content(model=model, contents=prompt, config=config)
+    except Exception as exc:
+        # One retry for transient overload (503); anything else falls back to deterministic.
+        if "503" not in str(exc) and "UNAVAILABLE" not in str(exc):
+            raise
+        time.sleep(1.5)
+        response = client.models.generate_content(model=model, contents=prompt, config=config)
     parsed = response.parsed
     if not parsed:
         raise RuntimeError("Gemini returned no structured intent payload")
@@ -223,7 +339,7 @@ def _gemini(message: str, history: List[Turn]) -> Tuple[List[MicroIntent], str]:
         parsed = LLMIntentExtraction.model_validate(parsed)
 
     intents: List[MicroIntent] = []
-    for idx, item in enumerate(parsed.items, 1):
+    for item in parsed.items:
         constraints = {
             k: v
             for k, v in {
@@ -237,13 +353,22 @@ def _gemini(message: str, history: List[Turn]) -> Tuple[List[MicroIntent], str]:
             }.items()
             if v is not None
         }
+        label = canonical_label(item.label)
+        existing = next((i for i in intents if i.label == label), None)
+        if existing:
+            # Two LLM items mapped to one catalog category: keep one, with the stronger score.
+            existing.commercial_score = max(existing.commercial_score, round(item.commercial_score, 3))
+            existing.sensitive_domain = existing.sensitive_domain or item.sensitive_domain
+            existing.constraints.update(constraints)
+            continue
         intents.append(
             MicroIntent(
-                id=f"mi_{idx:03d}",
-                label=item.label.strip().lower(),
+                id=f"mi_{len(intents) + 1:03d}",
+                label=label,
                 commercial_score=round(item.commercial_score, 3),
                 constraints=constraints,
                 sensitive_domain=item.sensitive_domain,
+                guidance=item.guidance.strip(),
             )
         )
     if not intents:
