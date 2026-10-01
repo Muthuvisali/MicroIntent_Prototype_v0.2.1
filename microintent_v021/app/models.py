@@ -5,13 +5,13 @@ from pydantic import BaseModel, Field
 
 class Turn(BaseModel):
     role: Literal["user", "assistant"]
-    content: str
+    content: str = Field(max_length=4000)
 
 
 class ChatRequest(BaseModel):
-    message: str
-    history: List[Turn] = Field(default_factory=list)
-    max_sponsored: int = 2
+    message: str = Field(min_length=1, max_length=1000)
+    history: List[Turn] = Field(default_factory=list, max_length=40)
+    max_sponsored: int = Field(default=2, ge=0, le=3)
 
 
 class MicroIntent(BaseModel):

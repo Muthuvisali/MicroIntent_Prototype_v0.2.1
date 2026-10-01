@@ -378,6 +378,8 @@ def _gemini(message: str, history: List[Turn]) -> Tuple[List[MicroIntent], str]:
 
 def extract_micro_intents(message: str, history: List[Turn]) -> Tuple[List[MicroIntent], str, str]:
     requested = os.getenv("MICROINTENT_MODE", "auto").lower().strip()
+    if os.getenv("MICROINTENT_DEMO") == "1":
+        requested = "deterministic"
     api_key = os.getenv("GEMINI_API_KEY", "").strip()
 
     should_try_gemini = requested == "gemini" or (requested == "auto" and bool(api_key))

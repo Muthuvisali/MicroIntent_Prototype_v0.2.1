@@ -215,3 +215,17 @@ def test_earlier_sensitive_context_still_blocks_vague_follow_up():
     d = client.post('/chat', json={'message': 'what should I buy?', 'history': hist}).json()
     assert d['placements'] == []
     assert any(x['status'] == 'blocked_sensitive' for x in d['trace']['decisions'])
+
+
+def test_demo_mode_never_calls_llm(monkeypatch):
+    monkeypatch.setenv('MICROINTENT_DEMO', '1')
+    monkeypatch.setenv('MICROINTENT_MODE', 'gemini')
+    monkeypatch.setenv('GEMINI_API_KEY', 'present-but-unused')
+    d = client.post('/chat', json={'message': SKINCARE}).json()
+    assert d['trace']['extractor_mode'] == 'deterministic'
+    assert client.get('/health').json()['demo'] is True
+
+
+def test_request_limits():
+    assert client.post('/chat', json={'message': 'x' * 1001}).status_code == 422
+    assert client.post('/chat', json={'message': SKINCARE, 'max_sponsored': 9}).status_code == 422

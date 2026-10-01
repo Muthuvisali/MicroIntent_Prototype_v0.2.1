@@ -20,6 +20,7 @@
     .trace{white-space:pre-wrap;background:#111827;color:#dbeafe;padding:13px;border-radius:12px;overflow:auto;max-height:330px;font-size:11px;line-height:1.45}.hidden{display:none}.compare{margin-top:14px;border-top:1px solid #edf0f3;padding-top:14px}.compareCard{border:1px solid #e1e5eb;border-radius:12px;padding:11px;margin:8px 0}.compareCard strong{display:block;margin-bottom:4px}.good{color:var(--green)}.warn{color:var(--amber)}
     .organic{margin-top:11px;border:1px solid #e3e6ea;background:#fcfcfd;border-radius:14px;padding:10px 13px}.orglabel{font-size:11px;text-transform:uppercase;letter-spacing:.08em;font-weight:800;color:var(--green)}.orgitem{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-top:1px solid #f0f1f3;font-size:13px}.orgitem:first-of-type{border-top:0}.orgitem small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
     .decisions{width:100%;border-collapse:collapse;font-size:12px;margin:10px 0}.decisions th,.decisions td{text-align:left;padding:5px 4px;border-bottom:1px solid #f0f1f3}.decisions th{color:var(--muted);font-weight:600}.st-selected{color:var(--green);font-weight:700}.st-blocked_sensitive{color:#b3261e;font-weight:700}
+    .demo{border:1px solid #f3d9a4;background:#fff8e8;color:#6b4e16;border-radius:12px;padding:10px 14px;font-size:13px;line-height:1.5;margin:0 0 16px}.demo a{color:#6b4e16}
     .empty{border:1px dashed #cfd4da;border-radius:14px;padding:18px;color:var(--muted);line-height:1.5}.footerNote{font-size:11px;color:#777;margin-top:14px;line-height:1.45}
     @media(max-width:900px){.grid{grid-template-columns:1fr}.sidebar{position:static}.top{flex-direction:column}.user{max-width:92%}}
   </style>
@@ -28,9 +29,10 @@
 <div class="shell">
   <div class="top">
     <div><h1>MicroIntent</h1><p class="sub">A portfolio prototype exploring whether conversational AI can match a small number of clearly labeled sponsored recommendations to the exact sub-intent where they are useful.</p></div>
-    <span class="badge">Independent concept · v0.3</span>
+    <span class="badge">Independent concept · v0.3.1</span>
   </div>
 
+  <div id="demoBanner" class="demo" hidden>Public demo: runs the transparent rule-based extractor, with no LLM calls. Gemini structured extraction is available when you run it locally &mdash; see the <a href="https://github.com/Muthuvisali/MicroIntent_Prototype_v0.2.1" target="_blank" rel="noopener">repository</a>.</div>
   <div class="grid">
     <main class="panel chat">
       <div class="samples">
@@ -83,6 +85,7 @@ async function send(){const text=q.value.trim(); if(!text)return; lastMessage=te
 async function compare(){if(!lastMessage)return;compareBtn.disabled=true;compareOut.innerHTML='<p class="muted">Comparing…</p>';const prior=history.slice(0,-2);const r=await fetch('/compare',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:lastMessage,history:prior,max_sponsored:Number(document.getElementById('cap').value)})});const d=await r.json();let h='';if(d.query_level.product){h+=`<div class="compareCard"><strong>Query-level baseline</strong>${escapeHtml(d.query_level.product.name)} · score ${d.query_level.score.toFixed(3)}<div class="muted" style="font-size:12px;margin-top:4px">One broad-category sponsored result.</div></div>`;}else{h+=`<div class="compareCard"><strong>Query-level baseline</strong><span class="muted">No eligible broad commercial result.</span></div>`;}h+=`<div class="compareCard"><strong>MicroIntent strategy</strong><span class="good">${d.micro_intent.length} selected placement(s)</span><div class="muted" style="font-size:12px;margin-top:4px">Matched against independently scored answer components.</div></div>`;compareOut.innerHTML=h;compareBtn.disabled=false;}
 function reset(){history=[];lastMessage='';lastResponse=null;thread.innerHTML='<div class="empty">Conversation reset. Try a sample or start a new session.</div>';metrics.innerHTML='<div class="empty">Run a query to inspect the pipeline.</div>';trace.classList.add('hidden');trace.textContent='';compareOut.innerHTML='';compareBtn.disabled=true;}
 
+fetch('/health').then(r=>r.json()).then(h=>{if(h.demo)document.getElementById('demoBanner').hidden=false;}).catch(()=>{});
 document.getElementById('send').onclick=send;document.getElementById('reset').onclick=reset;compareBtn.onclick=compare;q.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}});document.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{q.value=b.dataset.q;send();});
 </script>
 </body>

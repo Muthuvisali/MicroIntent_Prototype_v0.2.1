@@ -1,3 +1,14 @@
+---
+title: MicroIntent
+emoji: 🔎
+colorFrom: purple
+colorTo: yellow
+sdk: docker
+app_port: 7860
+pinned: false
+short_description: Micro-intent sponsored matching for AI search
+---
+
 # MicroIntent — From Clicks to Conversations
 
 A portfolio prototype exploring whether conversational AI can identify high-value **micro-intents** inside an answer and selectively attach clearly labeled sponsored recommendations.
@@ -71,6 +82,15 @@ python -m uvicorn app.main:app --reload
 Open `http://127.0.0.1:8000`.
 
 API docs: `http://127.0.0.1:8000/docs`.
+
+## Public demo
+
+The hosted demo sets `MICROINTENT_DEMO=1`, which forces the deterministic extractor even if an API key is present, so the public page never calls an LLM. Build and run the same image locally with:
+
+```bash
+docker build -t microintent .
+docker run -p 7860:7860 microintent
+```
 
 ## Enable Gemini structured extraction
 
