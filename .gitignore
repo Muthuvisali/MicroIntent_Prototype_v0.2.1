@@ -7,3 +7,6 @@ venv/
 __pycache__/
 *.pyc
 .pytest_cache/
+
+# Static demo build output
+microintent_v021/dist/

@@ -1,14 +1,3 @@
----
-title: MicroIntent
-emoji: 🔎
-colorFrom: purple
-colorTo: yellow
-sdk: docker
-app_port: 7860
-pinned: false
-short_description: Micro-intent sponsored matching for AI search
----
-
 # MicroIntent — From Clicks to Conversations
 
 A portfolio prototype exploring whether conversational AI can identify high-value **micro-intents** inside an answer and selectively attach clearly labeled sponsored recommendations.
@@ -85,7 +74,18 @@ API docs: `http://127.0.0.1:8000/docs`.
 
 ## Public demo
 
-The hosted demo sets `MICROINTENT_DEMO=1`, which forces the deterministic extractor even if an API key is present, so the public page never calls an LLM. Build and run the same image locally with:
+Live demo: https://huggingface.co/spaces/visaliravi/microintent
+
+The demo is a free Hugging Face **static** Space. The same Python pipeline runs in the visitor's browser with [Pyodide](https://pyodide.org) — no server, no LLM calls (deterministic extractor). `static_demo/shim.js` answers the UI's `/chat`, `/compare` and `/health` calls in the browser, so `static/index.html` is unchanged.
+
+Rebuild and publish:
+
+```bash
+python scripts/build_static.py          # writes dist/
+hf upload visaliravi/microintent dist . --repo-type space
+```
+
+To run the server version as a container instead (e.g. on a host that supports Docker), `MICROINTENT_DEMO=1` forces the deterministic extractor even when an API key is present:
 
 ```bash
 docker build -t microintent .

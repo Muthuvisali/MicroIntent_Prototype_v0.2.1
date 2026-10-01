@@ -58,4 +58,5 @@
 - Gemini is told to analyze the latest message and ignore earlier topics after a topic change.
 - Public demo mode: `MICROINTENT_DEMO=1` forces deterministic extraction, `/health` reports it, and the UI shows a demo banner. Dockerfile for Hugging Face Spaces (port 7860, non-root user; `.env` and `.venv` excluded from the image).
 - Request limits for a public endpoint: message ≤ 1,000 chars, ≤ 40 history turns, sponsored cap 0–3.
+- Static demo: `scripts/build_static.py` packages the pipeline for a free Hugging Face static Space, where it runs in the browser via Pyodide; strategy comparison moved to `app/services/comparison.py` so the server and browser share it.
 - 25 automated tests (was 15).
